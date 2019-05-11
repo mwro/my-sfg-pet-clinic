@@ -1,33 +1,46 @@
 package guru.springframework.mysfgpetclinic.services.map;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import guru.springframework.mysfgpetclinic.model.BaseEntity;
 
-public abstract class AbstractMapService<T, ID> {
+import java.util.*;
 
-    protected Map<ID, T> map = new HashMap<>();
+public abstract class AbstractMapService<T extends BaseEntity> {
+
+    Map<Long, T> map = new HashMap<>();
 
     Set<T> findAll() {
         return new HashSet<>(map.values());
     }
 
-    T findByID(ID id) {
+    T findByID(Long id) {
         return map.get(id);
     }
 
-    T save(ID id, T object) {
-        map.put(id, object);
+    T save(T object) {
+        if (object == null) {
+            throw new RuntimeException("Base Entity cannot be null!");
+        }
 
+        if (object.getId() == null) {
+            object.setId(getNextId());
+        }
+
+        map.put(object.getId(), object);
         return object;
     }
 
-    void deleteById(ID id) {
+    void deleteById(Long id) {
         map.remove(id);
     }
 
     void delete(T object) {
         map.entrySet().removeIf(entry -> entry.getValue().equals(object));
+    }
+
+    private Long getNextId() {
+        if (map.size() == 0) {
+            return 1L;
+        }
+        return Collections.max(map.keySet()) + 1;
     }
 }
